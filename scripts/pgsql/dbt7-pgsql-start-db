@@ -5,8 +5,8 @@
 #
 # Copyright (C) 2002-2008 Open Source Development Labs, Inc.
 #               2002-2008 Rod Taylor
-#               2014      Mark Wong
-#               2014      2ndQuadrant, Ltd.
+#               2015      Mark Wong
+#               2015      2ndQuadrant, Ltd.
 #
 
 if [ -z ${PGDATA} ]; then
@@ -14,7 +14,7 @@ if [ -z ${PGDATA} ]; then
 	exit 1
 fi
 
-LOGFILE="dbt3.log"
+LOGFILE="dbt7.log"
 OUTDIR="."
 while getopts "fo:p:" OPT; do
 	case ${OPT} in

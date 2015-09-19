@@ -8,7 +8,7 @@
 
 AUTOMAKE_OPTIONS = foreign
 
-dist_bin_SCRIPTS = dbt3-pgsql-create-db \
+dist_bin_SCRIPTS = dbt7-pgsql-create-db \
 		dbt3-pgsql-create-tables \
 		dbt3-pgsql-dbstat \
 		dbt3-pgsql-drop-db \
@@ -20,6 +20,6 @@ dist_bin_SCRIPTS = dbt3-pgsql-create-db \
 		dbt3-pgsql-plan-disaster \
 		dbt3-pgsql-rf1 \
 		dbt3-pgsql-rf2 \
-		dbt3-pgsql-start-db \
-		dbt3-pgsql-stop-db \
-		dbt3-pgsql-time-statistics
+		dbt7-pgsql-start-db \
+		dbt7-pgsql-stop-db \
+		dbt7-pgsql-time-statistics
