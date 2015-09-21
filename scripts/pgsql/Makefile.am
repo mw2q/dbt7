@@ -9,13 +9,13 @@
 AUTOMAKE_OPTIONS = foreign
 
 dist_bin_SCRIPTS = dbt7-pgsql-create-db \
-		dbt3-pgsql-create-tables \
+		dbt7-pgsql-create-tables \
 		dbt3-pgsql-dbstat \
 		dbt3-pgsql-drop-db \
-		dbt3-pgsql-drop-tables \
+		dbt7-pgsql-drop-tables \
 		dbt3-pgsql-get-query-time \
 		dbt3-pgsql-get-version \
-		dbt3-pgsql-load-data \
+		dbt7-pgsql-load-data \
 		dbt3-pgsql-load-test \
 		dbt3-pgsql-plan-disaster \
 		dbt3-pgsql-rf1 \
