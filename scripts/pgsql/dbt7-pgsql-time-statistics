@@ -9,22 +9,11 @@
 #
 
 cmd_clear=0
-cmd_start=0
-cmd_end=0
 
-while getopts "cen:s" opt; do
+while getopts "c" opt; do
 	case $opt in
 	c)
 		cmd_clear=1
-		;;
-	e)
-		cmd_end=1
-		;;
-	n)
-		NAME=$OPTARG
-		;;
-	s)
-		cmd_start=1
 		;;
 	\?)
 		exit 1
@@ -38,14 +27,5 @@ if [ $cmd_clear -eq 1 ]; then
     SQL="DELETE FROM time_statistics"
 fi;
 
-if [ $cmd_start -eq 1 ]; then
-    SQL="INSERT INTO time_statistics (task_name, s_time) 
-         VALUES ('$NAME', CURRENT_TIMESTAMP)"
-fi;
-
-if [ $cmd_end -eq 1 ]; then
-    SQL="UPDATE time_statistics SET e_time = CURRENT_TIMESTAMP WHERE task_name = '$NAME'"
-fi;
-
-$PSQL -c "$SQL"
+$PSQL -c "$SQL;"
 exit $?

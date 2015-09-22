@@ -29,47 +29,35 @@
 --     RELATING TO THE WORK, WHETHER OR NOT SUCH AUTHOR OR DEVELOPER HAD
 --     ADVANCE NOTICE OF THE POSSIBILITY OF SUCH DAMAGES.
 --
- -- $Id: query70.tpl,v 1.5 2007/09/25 18:46:21 jms Exp $
+ -- $Id: query21.tpl,v 1.10 2007/12/12 23:39:40 jms Exp $
  define YEAR=random(1998,2002,uniform);
- define DMS = random(1176,1224,uniform); -- Qualification: 1176
+ define SALES_DATE=date([YEAR]+"-01-31",[YEAR]+"-7-01",sales);
  define _LIMIT=100;
  
-select *
-from (
- [_LIMITA] select [_LIMITB] 
-    sum(ss_net_profit) as total_sum
-   ,s_state
-   ,s_county
-   ,grouping(s_state)+grouping(s_county) as lochierarchy
-   ,rank() over (
- 	partition by grouping(s_state)+grouping(s_county),
- 	case when grouping(s_county) = 0 then s_state end 
- 	order by sum(ss_net_profit) desc) as rank_within_parent
- from
-    store_sales
-   ,date_dim       d1
-   ,store
- where
-    d1.d_month_seq between [DMS] and [DMS]+11
- and d1.d_date_sk = ss_sold_date_sk
- and s_store_sk  = ss_store_sk
- and s_state in
-             ( select s_state
-               from  (select s_state as s_state,
- 			    rank() over ( partition by s_state order by sum(ss_net_profit) desc) as ranking
-                      from   store_sales, store, date_dim
-                      where  d_month_seq between [DMS] and [DMS]+11
- 			    and d_date_sk = ss_sold_date_sk
- 			    and s_store_sk  = ss_store_sk
-                      group by s_state
-                     ) tmp1 
-               where ranking <= 5
-             )
- group by rollup(s_state,s_county)
-) q
- order by
-   lochierarchy desc
-  ,case when lochierarchy = 0 then s_state end
-  ,rank_within_parent
+ [_LIMITA] select [_LIMITB] *
+ from(select w_warehouse_name
+            ,i_item_id
+            ,sum(case when (cast(d_date as date) < cast ('[SALES_DATE]' as date))
+	                then inv_quantity_on_hand 
+                      else 0 end) as inv_before
+            ,sum(case when (cast(d_date as date) >= cast ('[SALES_DATE]' as date))
+                      then inv_quantity_on_hand 
+                      else 0 end) as inv_after
+   from inventory
+       ,warehouse
+       ,item
+       ,date_dim
+   where i_current_price between 0.99 and 1.49
+     and i_item_sk          = inv_item_sk
+     and inv_warehouse_sk   = w_warehouse_sk
+     and inv_date_sk    = d_date_sk
+     and d_date between (cast ('[SALES_DATE]' as date) - interval '30 days')
+                    and (cast ('[SALES_DATE]' as date) + interval '30 days')
+   group by w_warehouse_name, i_item_id) x
+ where (case when inv_before > 0 
+             then inv_after / inv_before 
+             else null
+             end) between 2.0/3.0 and 3.0/2.0
+ order by w_warehouse_name
+         ,i_item_id
  [_LIMITC];
-

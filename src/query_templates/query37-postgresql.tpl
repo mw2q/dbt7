@@ -29,47 +29,27 @@
 --     RELATING TO THE WORK, WHETHER OR NOT SUCH AUTHOR OR DEVELOPER HAD
 --     ADVANCE NOTICE OF THE POSSIBILITY OF SUCH DAMAGES.
 --
- -- $Id: query70.tpl,v 1.5 2007/09/25 18:46:21 jms Exp $
+ -- $Id: query37.tpl,v 1.9 2008/09/10 18:01:43 jms Exp $
  define YEAR=random(1998,2002,uniform);
- define DMS = random(1176,1224,uniform); -- Qualification: 1176
+ define INVDATE=date([YEAR]+"-01-01",[YEAR]+"-07-24",sales);
+ define MANUFACT_ID=ulist(random(667,1000,uniform),4);
+ define PRICE=random(10,70,uniform);
  define _LIMIT=100;
- 
-select *
-from (
- [_LIMITA] select [_LIMITB] 
-    sum(ss_net_profit) as total_sum
-   ,s_state
-   ,s_county
-   ,grouping(s_state)+grouping(s_county) as lochierarchy
-   ,rank() over (
- 	partition by grouping(s_state)+grouping(s_county),
- 	case when grouping(s_county) = 0 then s_state end 
- 	order by sum(ss_net_profit) desc) as rank_within_parent
- from
-    store_sales
-   ,date_dim       d1
-   ,store
- where
-    d1.d_month_seq between [DMS] and [DMS]+11
- and d1.d_date_sk = ss_sold_date_sk
- and s_store_sk  = ss_store_sk
- and s_state in
-             ( select s_state
-               from  (select s_state as s_state,
- 			    rank() over ( partition by s_state order by sum(ss_net_profit) desc) as ranking
-                      from   store_sales, store, date_dim
-                      where  d_month_seq between [DMS] and [DMS]+11
- 			    and d_date_sk = ss_sold_date_sk
- 			    and s_store_sk  = ss_store_sk
-                      group by s_state
-                     ) tmp1 
-               where ranking <= 5
-             )
- group by rollup(s_state,s_county)
-) q
- order by
-   lochierarchy desc
-  ,case when lochierarchy = 0 then s_state end
-  ,rank_within_parent
+  
+ [_LIMITA] select [_LIMITB] i_item_id
+       ,i_item_desc
+       ,i_current_price
+ from item, inventory, date_dim, catalog_sales
+ where i_current_price between [PRICE] and [PRICE] + 30
+ and inv_item_sk = i_item_sk
+ and d_date_sk=inv_date_sk
+ and d_date between cast('[INVDATE]' as date) and (cast('[INVDATE]' as date) +  interval '60 days')
+ and i_manufact_id in ([MANUFACT_ID.1],[MANUFACT_ID.2],[MANUFACT_ID.3],[MANUFACT_ID.4])
+ and inv_quantity_on_hand between 100 and 500
+ and cs_item_sk = i_item_sk
+ group by i_item_id,i_item_desc,i_current_price
+ order by i_item_id
  [_LIMITC];
+ 
+ 
 

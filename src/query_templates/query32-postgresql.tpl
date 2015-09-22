@@ -29,47 +29,36 @@
 --     RELATING TO THE WORK, WHETHER OR NOT SUCH AUTHOR OR DEVELOPER HAD
 --     ADVANCE NOTICE OF THE POSSIBILITY OF SUCH DAMAGES.
 --
- -- $Id: query70.tpl,v 1.5 2007/09/25 18:46:21 jms Exp $
- define YEAR=random(1998,2002,uniform);
- define DMS = random(1176,1224,uniform); -- Qualification: 1176
- define _LIMIT=100;
- 
-select *
-from (
- [_LIMITA] select [_LIMITB] 
-    sum(ss_net_profit) as total_sum
-   ,s_state
-   ,s_county
-   ,grouping(s_state)+grouping(s_county) as lochierarchy
-   ,rank() over (
- 	partition by grouping(s_state)+grouping(s_county),
- 	case when grouping(s_county) = 0 then s_state end 
- 	order by sum(ss_net_profit) desc) as rank_within_parent
- from
-    store_sales
-   ,date_dim       d1
-   ,store
- where
-    d1.d_month_seq between [DMS] and [DMS]+11
- and d1.d_date_sk = ss_sold_date_sk
- and s_store_sk  = ss_store_sk
- and s_state in
-             ( select s_state
-               from  (select s_state as s_state,
- 			    rank() over ( partition by s_state order by sum(ss_net_profit) desc) as ranking
-                      from   store_sales, store, date_dim
-                      where  d_month_seq between [DMS] and [DMS]+11
- 			    and d_date_sk = ss_sold_date_sk
- 			    and s_store_sk  = ss_store_sk
-                      group by s_state
-                     ) tmp1 
-               where ranking <= 5
-             )
- group by rollup(s_state,s_county)
-) q
- order by
-   lochierarchy desc
-  ,case when lochierarchy = 0 then s_state end
-  ,rank_within_parent
- [_LIMITC];
+-- $id: query104.tpl,v 1.1 2005/10/07 18:07:36 jms exp $
+
+define IMID  = random(1,1000,uniform); -- 255 for qualification
+define YEAR  = random(1998,2002,uniform);
+define CSDATE = date([YEAR]+"-01-01",[YEAR]+"-04-01",sales);
+define _LIMIT=100;
+
+[_LIMITA] select [_LIMITB] sum(cs_ext_discount_amt)  as "excess discount amount" 
+from 
+   catalog_sales 
+   ,item 
+   ,date_dim
+where
+i_manufact_id = [IMID]
+and i_item_sk = cs_item_sk 
+and d_date between '[CSDATE]' and 
+        (cast('[CSDATE]' as date) + interval '90 days')
+and d_date_sk = cs_sold_date_sk 
+and cs_ext_discount_amt  
+     > ( 
+         select 
+            1.3 * avg(cs_ext_discount_amt) 
+         from 
+            catalog_sales 
+           ,date_dim
+         where 
+              cs_item_sk = i_item_sk 
+          and d_date between '[CSDATE]' and
+                             (cast('[CSDATE]' as date) + interval '90 days')
+          and d_date_sk = cs_sold_date_sk 
+      ) 
+[_LIMITC]; 
 

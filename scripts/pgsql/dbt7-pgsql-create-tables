@@ -33,9 +33,9 @@ CREATE TABLE store_sales (
     ss_quantity INTEGER,
     ss_wholesale_cost REAL,
     ss_list_price REAL,
-    ss_sales_price REAL,
+	ss_sales_price NUMERIC(7, 2),
     ss_ext_discount_amt REAL,
-    ss_ext_sales_price REAL,
+	ss_ext_sales_price NUMERIC(7, 2),
     ss_ext_wholesale_cost REAL,
     ss_ext_list_price REAL,
     ss_ext_tax REAL,
@@ -92,9 +92,9 @@ CREATE TABLE catalog_sales (
     cs_quantity INTEGER,
     cs_wholesale_cost REAL,
     cs_list_price REAL,
-    cs_sales_price REAL,
+	cs_sales_price NUMERIC(7, 2),
     cs_ext_discount_amt REAL,
-    cs_ext_sales_price REAL,
+	cs_ext_sales_price NUMERIC(7, 2),
     cs_ext_wholesale_cost REAL,
     cs_ext_list_price REAL,
     cs_ext_tax REAL,
@@ -161,9 +161,9 @@ CREATE TABLE web_sales (
     ws_quantity INTEGER,
     ws_wholesale_cost REAL,
     ws_list_price REAL,
-    ws_sales_price REAL,
+	ws_sales_price NUMERIC(7, 2),
     ws_ext_discount_amt REAL,
-    ws_ext_sales_price REAL,
+	ws_ext_sales_price NUMERIC(7, 2),
     ws_ext_wholesale_cost REAL,
     ws_ext_list_price REAL,
     ws_ext_tax REAL,
@@ -549,7 +549,10 @@ CREATE TABLE dsdgen_version (
 
 create_table "
 CREATE TABLE time_statistics (
-    task_name VARCHAR(40),
+    stream INTEGER NOT NULL,
+    query INTEGER NOT NULL,
+    template VARCHAR(22) NOT NULL,
+    seed BIGINT NOT NULL,
     s_time TIMESTAMP,
     e_time TIMESTAMP
 );" || exit 1

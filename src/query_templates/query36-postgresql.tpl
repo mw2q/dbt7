@@ -29,47 +29,47 @@
 --     RELATING TO THE WORK, WHETHER OR NOT SUCH AUTHOR OR DEVELOPER HAD
 --     ADVANCE NOTICE OF THE POSSIBILITY OF SUCH DAMAGES.
 --
- -- $Id: query70.tpl,v 1.5 2007/09/25 18:46:21 jms Exp $
+ -- $Id: query36.tpl,v 1.10 2008/09/10 18:01:43 jms Exp $
  define YEAR=random(1998,2002,uniform);
- define DMS = random(1176,1224,uniform); -- Qualification: 1176
+ define STATENUMBER=ulist(random(1, rowcount("active_states", "store"), uniform),8);
+ define STATE_A=distmember(fips_county,[STATENUMBER.1], 3);
+ define STATE_B=distmember(fips_county,[STATENUMBER.2], 3);
+ define STATE_C=distmember(fips_county,[STATENUMBER.3], 3);
+ define STATE_D=distmember(fips_county,[STATENUMBER.4], 3);
+ define STATE_E=distmember(fips_county,[STATENUMBER.5], 3);
+ define STATE_F=distmember(fips_county,[STATENUMBER.6], 3);
+ define STATE_G=distmember(fips_county,[STATENUMBER.7], 3);
+ define STATE_H=distmember(fips_county,[STATENUMBER.8], 3);
  define _LIMIT=100;
  
 select *
 from (
  [_LIMITA] select [_LIMITB] 
-    sum(ss_net_profit) as total_sum
-   ,s_state
-   ,s_county
-   ,grouping(s_state)+grouping(s_county) as lochierarchy
+    sum(ss_net_profit)/sum(ss_ext_sales_price) as gross_margin
+   ,i_category
+   ,i_class
+   ,grouping(i_category)+grouping(i_class) as lochierarchy
    ,rank() over (
- 	partition by grouping(s_state)+grouping(s_county),
- 	case when grouping(s_county) = 0 then s_state end 
- 	order by sum(ss_net_profit) desc) as rank_within_parent
+ 	partition by grouping(i_category)+grouping(i_class),
+ 	case when grouping(i_class) = 0 then i_category end 
+ 	order by sum(ss_net_profit)/sum(ss_ext_sales_price) asc) as rank_within_parent
  from
     store_sales
    ,date_dim       d1
+   ,item
    ,store
  where
-    d1.d_month_seq between [DMS] and [DMS]+11
+    d1.d_year = [YEAR] 
  and d1.d_date_sk = ss_sold_date_sk
+ and i_item_sk  = ss_item_sk 
  and s_store_sk  = ss_store_sk
- and s_state in
-             ( select s_state
-               from  (select s_state as s_state,
- 			    rank() over ( partition by s_state order by sum(ss_net_profit) desc) as ranking
-                      from   store_sales, store, date_dim
-                      where  d_month_seq between [DMS] and [DMS]+11
- 			    and d_date_sk = ss_sold_date_sk
- 			    and s_store_sk  = ss_store_sk
-                      group by s_state
-                     ) tmp1 
-               where ranking <= 5
-             )
- group by rollup(s_state,s_county)
+ and s_state in ('[STATE_A]','[STATE_B]','[STATE_C]','[STATE_D]',
+                 '[STATE_E]','[STATE_F]','[STATE_G]','[STATE_H]')
+ group by rollup(i_category,i_class)
 ) q
  order by
    lochierarchy desc
-  ,case when lochierarchy = 0 then s_state end
+  ,case when lochierarchy = 0 then i_category end
   ,rank_within_parent
- [_LIMITC];
+  [_LIMITC];
 
